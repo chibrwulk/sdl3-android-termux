@@ -1,0 +1,69 @@
+#!/data/data/com.termux/files/usr/bin/bash
+set -e
+source ~/sdl3-android-build/env.sh
+
+show_help() {
+    cat << 'HELP'
+sdl3-build — Build SDL3 Android APK in Termux
+
+Usage:
+  sdl3-build [release] [project-directory]
+
+Examples:
+  sdl3-build                          # Build debug APK in current directory
+  sdl3-build release                  # Build release APK in current directory
+  sdl3-build ~/mygame                 # Build debug APK of ~/mygame project
+  sdl3-build release ~/mygame         # Build release APK of ~/mygame project
+  sdl3-build help                     # Show this help
+
+Project structure expected:
+  project/
+  └── app/
+      ├── build.gradle
+      ├── src/main/AndroidManifest.xml
+      └── jni/
+          ├── CMakeLists.txt
+          ├── SDL/
+          └── src/
+              ├── CMakeLists.txt
+              └── main.cpp
+
+APK output:
+  Debug:   app/build/outputs/apk/debug/app-debug.apk
+  Release: app/build/outputs/apk/release/app-release-unsigned.apk
+
+Environment:
+  SDK:  ~/sdl3-android-build/sdk
+  NDK:  ~/sdl3-android-build/sdk/ndk/29.0.14206865
+HELP
+}
+
+if [ "$1" = "help" ] || [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+TASK="assembleDebug"
+if [ "$1" = "release" ]; then
+    TASK="assembleRelease"
+    shift
+fi
+
+PROJECT_DIR="${1:-$(pwd)}"
+if [ ! -f "$PROJECT_DIR/app/build.gradle" ]; then
+    echo "[!] Not an SDL3 Android project: $PROJECT_DIR"
+    echo "    Expected: $PROJECT_DIR/app/build.gradle"
+    echo ""
+    echo "Run 'sdl3-build help' for usage."
+    exit 1
+fi
+
+cd "$PROJECT_DIR"
+./gradlew "$TASK"
+echo ""
+echo "[+] SUCCESS"
+if [ "$TASK" = "assembleDebug" ]; then
+    echo "    APK: $PROJECT_DIR/app/build/outputs/apk/debug/app-debug.apk"
+else
+    echo "    APK: $PROJECT_DIR/app/build/outputs/apk/release/app-release-unsigned.apk"
+fi

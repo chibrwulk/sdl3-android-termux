@@ -1,0 +1,51 @@
+#!/data/data/com.termux/files/usr/bin/bash
+source ~/sdl3-android-build/env.sh
+
+show_help() {
+    cat << 'HELP'
+sdl3-install — Install SDL3 Android APK from Termux
+
+Usage:
+  sdl3-install [apk-path]
+
+Examples:
+  sdl3-install                                    # Install debug APK from current project
+  sdl3-install app/build/outputs/apk/debug/app-debug.apk
+  sdl3-install ~/mygame/app/build/outputs/apk/debug/app-debug.apk
+
+Methods (tried in order):
+  1. adb install        — if adb daemon is running and device authorized
+  2. termux-open        — opens system package installer dialog
+HELP
+}
+
+if [ "$1" = "help" ] || [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
+APK="${1:-$(pwd)/app/build/outputs/apk/debug/app-debug.apk}"
+if [ ! -f "$APK" ]; then
+    echo "[!] APK not found: $APK"
+    echo ""
+    echo "Run 'sdl3-install help' for usage."
+    exit 1
+fi
+
+echo "[*] Installing: $APK"
+
+# Try adb first
+if command -v adb >/dev/null 2>&1; then
+    if adb devices | grep -q "device$"; then
+        echo "[*] Using adb..."
+        adb install -r "$APK"
+        echo "[+] Installed via adb"
+        exit 0
+    else
+        echo "[*] No adb device found, trying termux-open..."
+    fi
+fi
+
+# Fallback to system installer
+termux-open "$APK"
+echo "[+] Opened system installer for $APK"

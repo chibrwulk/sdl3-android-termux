@@ -1,0 +1,12 @@
+# SDK/NDK downloaded during install
+sdk/
+*.tar.xz
+*.zip
+
+# Build artifacts
+build/
+.cxx/
+.gradle/
+*.apk
+*.so
+local.properties
