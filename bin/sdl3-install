@@ -8,14 +8,19 @@ sdl3-install — Install SDL3 Android APK from Termux
 Usage:
   sdl3-install [apk-path]
 
-Examples:
-  sdl3-install                                    # Install debug APK from current project
-  sdl3-install app/build/outputs/apk/debug/app-debug.apk
-  sdl3-install ~/mygame/app/build/outputs/apk/debug/app-debug.apk
-
 Methods (tried in order):
-  1. adb install        — if adb daemon is running and device authorized
-  2. termux-open        — opens system package installer dialog
+  1. ADB over USB/WiFi    — most reliable
+  2. Shizuku (rish)       — persists until reboot
+  3. Content URI + am     — direct system installer
+  4. Manual               — copy to Downloads, tap in Files app
+
+Shizuku setup (do once):
+  1. Install Shizuku app (Play Store / F-Droid)
+  2. Start Shizuku: "Start via Wireless Debugging"
+  3. In Shizuku app: "Use Shizuku in terminal apps" → "Export"
+  4. Copy files to Termux:
+       cp /sdcard/rish $PREFIX/bin/rish && chmod +x $PREFIX/bin/rish
+       cp /sdcard/rish_shizuku.dex $HOME/rish_shizuku.dex && chmod 400 $HOME/rish_shizuku.dex
 HELP
 }
 
@@ -27,25 +32,63 @@ fi
 APK="${1:-$(pwd)/app/build/outputs/apk/debug/app-debug.apk}"
 if [ ! -f "$APK" ]; then
     echo "[!] APK not found: $APK"
-    echo ""
-    echo "Run 'sdl3-install help' for usage."
     exit 1
 fi
 
-echo "[*] Installing: $APK"
+echo "[*] APK: $APK"
+APK_NAME="$(basename "$APK")"
 
-# Try adb first
+# Method 1: ADB
 if command -v adb >/dev/null 2>&1; then
-    if adb devices | grep -q "device$"; then
-        echo "[*] Using adb..."
+    if adb devices 2>/dev/null | grep -q "device$"; then
+        echo "[*] Installing via adb..."
         adb install -r "$APK"
-        echo "[+] Installed via adb"
+        echo "[+] Installed!"
         exit 0
-    else
-        echo "[*] No adb device found, trying termux-open..."
     fi
 fi
 
-# Fallback to system installer
-termux-open "$APK"
-echo "[+] Opened system installer for $APK"
+# Method 2: Shizuku via rish
+if command -v rish >/dev/null 2>&1; then
+    echo "[*] Trying Shizuku (rish)..."
+    DOWNLOADS="$HOME/storage/downloads"
+    if [ -d "$DOWNLOADS" ]; then
+        cp "$APK" "$DOWNLOADS/$APK_NAME"
+        # rish copies from Downloads to /data/local/tmp/ and installs
+        RISH_OUT=$(rish -c "cp /sdcard/Download/$APK_NAME /data/local/tmp/$APK_NAME && pm install -r /data/local/tmp/$APK_NAME && rm -f /data/local/tmp/$APK_NAME" 2>&1)
+        RISH_EXIT=$?
+        if [ $RISH_EXIT -eq 0 ] && echo "$RISH_OUT" | grep -qi "success"; then
+            echo "[+] Installed via Shizuku!"
+            am start -n org.libsdl.app/org.libsdl.app.SDLActivity 2>/dev/null
+            exit 0
+        fi
+        echo "[!] Shizuku install output: $RISH_OUT"
+    fi
+fi
+
+# Method 3: Content URI
+echo "[*] Trying content:// URI..."
+DOWNLOADS="$HOME/storage/downloads"
+if [ -d "$DOWNLOADS" ]; then
+    cp "$APK" "$DOWNLOADS/$APK_NAME"
+    CONTENT_URI="content://com.android.externalstorage.documents/document/primary%3ADownload%2F$APK_NAME"
+    am start -a android.intent.action.VIEW \
+        -d "$CONTENT_URI" \
+        -t application/vnd.android.package-archive \
+        -f 0x00000001 \
+        2>/dev/null
+    echo "[+] Opened system installer. Tap INSTALL in the dialog."
+    exit 0
+fi
+
+echo ""
+echo "=========================================="
+echo "  Automatic install not available"
+echo "=========================================="
+echo ""
+echo "Quick fix — ADB Wireless:"
+echo "  adb pair IP:PORT && adb connect IP:PORT"
+echo "  sdl3-install"
+echo ""
+echo "Or install manually:"
+echo "  Files app > Downloads > tap '$APK_NAME'"
