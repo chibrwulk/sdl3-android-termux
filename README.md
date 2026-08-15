@@ -1,61 +1,73 @@
-# SDL3 Android Build Environment (Termux)
+# SDL3 Android Builder (Termux)
+
+Build SDL3 C++ apps into Android APK directly on your phone — no PC needed.
 
 ## Quick Start
 
 ```bash
-cd ~/sdl3-android-builder
-source env.sh
+curl -fsSL https://raw.githubusercontent.com/chibrwulk/sdl3-android-termux/main/install.sh | bash
 sdl3-build
+sdl3-install
 ```
 
-APK will be at: `project/testapp/app/build/outputs/apk/debug/app-debug.apk`
+That's it. No `source`, no `.bashrc` edits.
+
+## What It Does
+
+- Downloads Android SDK, NDK r29, SDL3
+- Sets up a sample project with working C++ → APK pipeline
+- Installs global commands: `sdl3-build`, `sdl3-install`
+- Targets Android API 21+ (Android 5.0+), arm64-v8a
 
 ## Commands
 
-After `source env.sh`, these are available in PATH:
+| Command | Description |
+|---|---|
+| `sdl3-build` | Build debug APK in current project |
+| `sdl3-build release` | Build release APK (unsigned) |
+| `sdl3-build ~/mygame` | Build project at specific path |
+| `sdl3-install` | Install APK (Shizuku → ADB → system installer) |
+| `sdl3-build help` | Show full usage |
 
-- `sdl3-build [release] [project-dir]` — build APK (default: debug, current dir)
-- `sdl3-install [apk-path]` — install APK via adb or system installer
-- `sdl3-build help` — show full usage
-
-Legacy scripts (also work):
-- `./build.sh` — build debug APK in `project/testapp/`
-- `./build-release.sh` — build release APK (unsigned)
-
-## Files
-
-- `env.sh` — environment variables (JAVA_HOME, ANDROID_HOME, NDK, PATH)
-- `bin/sdl3-build` — universal build command
-- `bin/sdl3-install` — install command
-- `build.sh` / `build-release.sh` — legacy wrappers
-- `uninstall.sh` — remove everything
-- `project/testapp/` — sample SDL3 Android project
+Commands are available globally after installation. No `source env.sh` needed.
 
 ## Project Structure
 
 ```
-project/testapp/
-├── app/
-│   ├── build.gradle          # Android build config (compileSdk 34, NDK r29)
-│   ├── src/main/
-│   │   ├── AndroidManifest.xml
-│   │   ├── java/org/libsdl/app/   # SDL Java shim
-│   │   └── res/                   # Android resources
-│   └── jni/
-│       ├── CMakeLists.txt    # Top-level CMake
-│       ├── SDL/              # SDL3 source (copied)
-│       └── src/
-│           ├── CMakeLists.txt
-│           └── main.cpp      # Your C++ code
+~/sdl3-android-builder/
+├── env.sh              # environment (auto-sourced by wrappers)
+├── bin/
+│   ├── sdl3-build      # build script
+│   └── sdl3-install    # install script
+├── build.sh            # legacy wrapper (debug)
+├── build-release.sh    # legacy wrapper (release)
+├── uninstall.sh        # remove everything
+└── project/testapp/    # sample SDL3 project
+    └── app/
+        ├── build.gradle
+        ├── src/main/
+        │   ├── AndroidManifest.xml
+        │   ├── java/org/libsdl/app/   # SDL Java shim
+        │   └── res/                   # icons, strings
+        └── jni/
+            ├── CMakeLists.txt
+            ├── SDL/                   # SDL3 source (git)
+            └── src/
+                ├── CMakeLists.txt
+                └── main.cpp           # your code here
 ```
 
-## Adding Your Own Code
+## Adding Your Code
 
-Edit `project/testapp/app/jni/src/main.cpp` and run `sdl3-build`.
+Edit `~/sdl3-android-builder/project/testapp/app/jni/src/main.cpp`, then:
 
-For multiple files, edit `project/testapp/app/jni/src/CMakeLists.txt`.
+```bash
+sdl3-build
+```
 
-## Creating a New Project from Template
+For multiple files, edit `app/jni/src/CMakeLists.txt`.
+
+## New Project from Template
 
 ```bash
 cp -r ~/sdl3-android-builder/project/testapp ~/mygame
@@ -64,26 +76,52 @@ cd ~/mygame
 sdl3-build
 ```
 
+## Shizuku Setup (recommended for Android 11+)
+
+Shizuku lets you install APKs without ADB and without tapping through system dialogs.
+
+1. Install **Shizuku** app (Play Store / F-Droid)
+2. Start it: **"Start via Wireless Debugging"**
+3. In Shizuku app: **"Use Shizuku in terminal apps"** → **"Export"**
+4. Copy files to Termux:
+   ```bash
+   cp /sdcard/rish $PREFIX/bin/rish && chmod +x $PREFIX/bin/rish
+   cp /sdcard/rish_shizuku.dex $HOME/rish_shizuku.dex && chmod 400 $HOME/rish_shizuku.dex
+   ```
+5. Done. `sdl3-install` will use Shizuku automatically.
+
+## ADB Wireless (alternative)
+
+```bash
+# Settings > Developer options > Wireless debugging > Pair
+adb pair IP:PORT
+adb connect IP:PORT
+sdl3-install
+```
+
 ## Target
 
-- Android API 21+ (Android 5.0+)
-- arm64-v8a only
-- SDL3 with OpenGL ES + Vulkan
-- compileSdk 34, targetSdk 34, minSdk 21
+- **minSdk:** 21 (Android 5.0)
+- **targetSdk:** 34
+- **ABI:** arm64-v8a
+- **Graphics:** OpenGL ES, Vulkan
+- **Size:** ~2 GB installed
 
 ## Requirements
 
-- Termux with `pkg` working
-- ~2 GB free space
-- Internet for initial SDK/NDK download
+- Termux from F-Droid or GitHub (not Play Store)
+- `pkg` working
+- ~2 GB free storage
+- Internet for initial download
 
-## Cleanup
+## Uninstall
 
 ```bash
-./uninstall.sh
+~/sdl3-android-builder/uninstall.sh
 ```
 
-This removes everything in `~/sdl3-android-builder/`.
+Removes `~/sdl3-android-builder/` and global commands.
 
-## additional info
-Code and readme for this repo was written by AI (Kimi K2.6).
+---
+
+*Code and README written with assistance from AI (Kimi K2.6).*
