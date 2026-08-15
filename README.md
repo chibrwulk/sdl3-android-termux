@@ -84,3 +84,6 @@ sdl3-build
 ```
 
 This removes everything in `~/sdl3-android-build/`.
+
+## additional info
+Code and readme for this repo was written by AI (Kimi K2.6).
