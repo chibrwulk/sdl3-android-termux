@@ -1,6 +1,6 @@
 #!/data/data/com.termux/files/usr/bin/bash
 set -e
-source ~/sdl3-android-build/env.sh
+source ~/sdl3-android-builder/env.sh
 
 show_help() {
     cat << 'HELP'
@@ -33,8 +33,8 @@ APK output:
   Release: app/build/outputs/apk/release/app-release-unsigned.apk
 
 Environment:
-  SDK:  ~/sdl3-android-build/sdk
-  NDK:  ~/sdl3-android-build/sdk/ndk/29.0.14206865
+  SDK:  ~/sdl3-android-builder/sdk
+  NDK:  ~/sdl3-android-builder/sdk/ndk/29.0.14206865
 HELP
 }
 

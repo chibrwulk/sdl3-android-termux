@@ -2,7 +2,7 @@
 set -e
 
 REPO_URL="https://github.com/YOUR_USERNAME/sdl3-android-termux"
-INSTALL_DIR="$HOME/sdl3-android-build"
+INSTALL_DIR="$HOME/sdl3-android-builder"
 
 echo "=========================================="
 echo "  SDL3 Android Build Environment for Termux"
@@ -43,10 +43,10 @@ echo "[5/6] Installing platform android-34..."
 cat > env.sh << 'ENVEOF'
 #!/data/data/com.termux/files/usr/bin/bash
 export JAVA_HOME="$PREFIX/lib/jvm/java-21-openjdk"
-export ANDROID_HOME="$HOME/sdl3-android-build/sdk"
+export ANDROID_HOME="$HOME/sdl3-android-builder/sdk"
 export ANDROID_SDK_ROOT="$ANDROID_HOME"
 export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/29.0.14206865"
-export PATH="$HOME/sdl3-android-build/bin:$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-aarch64/bin"
+export PATH="$HOME/sdl3-android-builder/bin:$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-aarch64/bin"
 ENVEOF
 chmod +x env.sh
 source env.sh

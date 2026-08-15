@@ -1,5 +1,5 @@
 #!/data/data/com.termux/files/usr/bin/bash
-source ~/sdl3-android-build/env.sh
+source ~/sdl3-android-builder/env.sh
 
 show_help() {
     cat << 'HELP'

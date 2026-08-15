@@ -3,7 +3,7 @@
 ## Quick Start
 
 ```bash
-cd ~/sdl3-android-build
+cd ~/sdl3-android-builder
 source env.sh
 sdl3-build
 ```
@@ -58,7 +58,7 @@ For multiple files, edit `project/testapp/app/jni/src/CMakeLists.txt`.
 ## Creating a New Project from Template
 
 ```bash
-cp -r ~/sdl3-android-build/project/testapp ~/mygame
+cp -r ~/sdl3-android-builder/project/testapp ~/mygame
 cd ~/mygame
 # edit app/jni/src/main.cpp
 sdl3-build
@@ -83,7 +83,7 @@ sdl3-build
 ./uninstall.sh
 ```
 
-This removes everything in `~/sdl3-android-build/`.
+This removes everything in `~/sdl3-android-builder/`.
 
 ## additional info
 Code and readme for this repo was written by AI (Kimi K2.6).
